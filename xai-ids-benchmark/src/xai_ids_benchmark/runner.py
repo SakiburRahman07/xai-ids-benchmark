@@ -101,7 +101,7 @@ def run_one_cell(dataset_name: str, ds_cfg: dict, model_name: str, model_cfg: di
         df = load_dataset(dataset_name, ds_cfg, base=base)
     except FileNotFoundError as e:
         logger.error(f"Dataset {dataset_name} not available: {e}")
-        return {"dataset": dataset_name, "model": model_name, "error": str(e)}
+        return [{"dataset": dataset_name, "model": model_name, "error": str(e)}]
 
     if quick:
         df = df.sample(min(2000, len(df)), random_state=seed).reset_index(drop=True)
@@ -237,10 +237,12 @@ def run_benchmark(config_dir: str, base: str = ".", out_dir: str = "results",
     # Build a tidy metric table for analysis
     flat = []
     for r in all_rows:
-        if "error" in r:
+        if not isinstance(r, dict) or "error" in r:
             continue
         for fam in ("faithfulness", "stability", "cost", "proxy_utility"):
-            fam_v = r.get(fam, {}) or {}
+            fam_v = r.get(fam, {})
+            if not isinstance(fam_v, dict):
+                continue
             for mk, mv in _flatten(fam_v).items():
                 flat.append({
                     "dataset": r["dataset"], "vintage": r["vintage"],
