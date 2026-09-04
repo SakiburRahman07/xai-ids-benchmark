@@ -1,0 +1,108 @@
+# Dataset configurations for the XAI-IDS benchmark.
+# Each dataset defines: download source(s), the target column, id/leakage columns,
+# the leakage-control split protocol, and per-attack-family stratification.
+
+datasets:
+  cicids2017:
+    name: "CICIDS2017"
+    vintage: 2017
+    role: "canonical baseline"
+    # Files are distributed as a zip of CSVs per day. The loader concatenates them.
+    download_urls:
+      # UNB requires a form; this Kaggle mirror is commonly used as a fallback.
+      - "https://www.unb.ca/cic/datasets/ids-2017.html"   # official (manual)
+    manual_instructions: |
+      Download the 'MachineLearningCSV.zip' from the official UNB page
+      (https://www.unb.ca/cic/datasets/ids-2017.html) and place the
+      extracted CSVs under data_raw/cicids2017/. The loader expects one or
+      more CSV files matching *.csv in that folder.
+    files_glob: "data_raw/cicids2017/**/*.csv"
+    target_column: "Label"
+    # Columns that leak (timestamps, flow IDs, etc.) — dropped before splitting.
+    drop_columns:
+      - "Timestamp"        # if present
+    label_normalize: "lower_strip"   # 'BENIGN' -> 'benign'
+    split:
+      protocol: "hash_dedup"          # Tolay 2026 / Bouke 2026
+      hash_features: "all_numeric"    # exact-feature hash for dedup
+      test_size: 0.3
+      val_size: 0.2                    # of the non-test remainder
+      random_state: 20260827
+      temporal: false                  # no reliable timestamp across the set
+      remove_label_collisions: true
+    families:
+      benign: ["benign"]
+      dos:   ["dos slowloris", "dos slowhttptest", "dos hulk", "dos goldeneye"]
+      ddos:   ["ddos"]
+      probe: ["ftp-patator", "ssh-patator", "portscan"]
+      web:   ["brute force", "xss", "sql injection"]
+      bot:   ["bot"]
+
+  unsw_nb15:
+    name: "UNSW-NB15"
+    vintage: 2015
+    role: "multicollinearity stress test (Vourganas 2026)"
+    download_urls:
+      - "https://research.unsw.edu.au/projects/unsw-nb15-dataset"
+    manual_instructions: |
+      Download UNSW-NB15_1_4 CSVs (UNSW-NB15_1.csv..UNSW-NB15_4.csv) and
+      the ground-truth NUSW-NB15_GT.csv from the official UNSW page, place
+      them under data_raw/unsw_nb15/. Alternatively use the Kaggle mirror.
+    files_glob: "data_raw/unsw_nb15/UNSW-NB15_*.csv"
+    target_column: "attack_cat"
+    drop_columns:
+      - "srcip"
+      - "dstip"
+      - "stime"
+      - "ltime"
+    proto_category_columns: ["proto", "service", "state"]   # one-hot encoded
+    split:
+      protocol: "hash_dedup"
+      hash_features: "all_numeric"
+      test_size: 0.3
+      val_size: 0.2
+      random_state: 20260827
+      temporal: false
+      remove_label_collisions: true
+    families:
+      benign: ["normal"]
+      fuzzers: ["fuzzers"]
+      analysis: ["analysis"]
+      backdoor: ["backdoor"]
+      dos: ["dos"]
+      exploits: ["exploits"]
+      generic: ["generic"]
+      recon: ["recon"]
+      shellcode: ["shellcode"]
+      worm: ["worm"]
+
+  ciciot2023:
+    name: "CICIoT2023"
+    vintage: 2023
+    role: "modern IoT, recent attack mix"
+    download_urls:
+      - "https://www.unb.ca/cic/datasets/iotdataset-2023.html"
+    manual_instructions: |
+      Download the CICIoT2023 CSVs from the official UNB page (or Kaggle
+      mirror 'cic-iot-dataset-2023') and place them under data_raw/ciciot2023/.
+    files_glob: "data_raw/ciciot2023/**/*.csv"
+    target_column: "label"
+    drop_columns: []
+    split:
+      protocol: "hash_dedup"           # Tolay 2026 39-feature hash pipeline
+      hash_features: "all_numeric"
+      test_size: 0.3
+      val_size: 0.2
+      random_state: 20260827
+      temporal: false
+      remove_label_collisions: true
+    families:
+      # Grouped per the dataset's documented class taxonomy
+      benign: ["normal"]
+      ddos: ["ddos"]
+      dos: ["dos"]
+      recon: ["recon"]
+      webbased: ["webbased"]
+      brute: ["brute"]
+      spoofing: ["spoofing"]
+      mirai: ["mirai"]

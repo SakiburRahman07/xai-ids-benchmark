@@ -1,0 +1,43 @@
+# Data (downloaded at runtime; do not commit)
+data_raw/
+data_processed/
+*.csv
+*.parquet
+*.csv.gz
+*.zip
+*.tar.gz
+
+# Results
+results/
+*.log
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.eggs/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Environments
+.env
+.venv/
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Colab / Jupyter
+*.ipynb_checkpoints/

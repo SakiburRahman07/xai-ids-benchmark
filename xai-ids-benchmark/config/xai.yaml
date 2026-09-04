@@ -1,0 +1,65 @@
+# XAI method configurations. Four core methods (SHAP, LIME, Counterfactual,
+# Intrinsic) plus optional stretch methods gated off by default.
+
+xai_methods:
+  shap:
+    name: "SHAP"
+    family: "post_hoc_additive"
+    enabled: true
+    impl: "captum"                    # 'captum' (GradientShap) primary
+    params:
+      variant: "gradient_shap"        # 'gradient_shap' | 'deepshap' | 'integrated_gradients' (sensitivity)
+      n_samples: 200                   # baseline samples for GradientShap
+      baselines: "train_mean"          # reference baseline
+    sensitivity_variants: ["gradient_shap", "integrated_gradients"]
+
+  lime:
+    name: "LIME"
+    family: "post_hoc_local"
+    enabled: true
+    impl: "lime"
+    params:
+      mode: "classification"
+      num_features: 10                 # top-k local features
+      num_samples: 1000                # neighborhood samples
+      random_state: 20260827
+
+  counterfactual:
+    name: "Counterfactual"
+    family: "post_hoc_actionable"
+    enabled: true
+    impl: "dice"
+    params:
+      total_CFs: 3                     # number of counterfactuals per instance
+      desired_class: 0                 # flip to benign (OvR: 0 = benign)
+      proximity_weight: 0.5
+      sparsity_weight: 0.5
+      diversity_weight: 1.0
+      max_iter: 200
+      fallback: "diffusion"            # Galwaduge 2025 diffusion-CF (stub; logs if unavailable)
+    coverage_reported: true            # report % of instances with valid CFs
+
+  intrinsic:
+    name: "Intrinsic reference"
+    family: "intrinsic"
+    enabled: true
+    impl: "decision_tree"
+    params:
+      max_depth: 6
+      random_state: 20260827
+    # Decision tree's structure/path provides the intrinsic reference explanations
+    # that bound post-hoc vs intrinsic faithfulness.
+
+  # --- Stretch methods (gated off; enable per proposal §12) ---
+  llm_conversational:
+    name: "LLM-conversational"
+    family: "generative"
+    enabled: false
+    impl: "local_llm"
+    params:
+      model: "local/open"              # no paid API; gated
+  gradcam:
+    name: "Grad-CAM / attention-fidelity"
+    family: "post_hoc"
+    enabled: false
+    impl: "gradcam"

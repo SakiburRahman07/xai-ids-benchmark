@@ -1,0 +1,43 @@
+# DL-IDS architectures. Both trained to a matched detection-performance budget
+# (±1 pp macro-F1 on the held-out validation split) so explanation comparison is fair.
+
+global:
+  input_feature_dim: "auto"        # resolved per dataset at runtime
+  num_classes: "auto"               # binary per family; one-vs-rest for multi-class
+  task: "binary"                     # binary classification per attack family (OvR)
+  matched_budget_macro_f1_delta: 0.01   # |macroF1_cnn - macroF1_tx| <= 0.01
+  training:
+    max_epochs: 50
+    patience: 8
+    batch_size: 1024
+    optimizer: "adamw"
+    lr: 0.001
+    weight_decay: 0.0001
+    random_state: 20260827
+    device: "auto"                    # 'cuda' if available else 'cpu'
+    early_stop_metric: "macro_f1"
+    checkpoint_dir: "results/checkpoints"
+
+models:
+  cnn1d:
+    name: "1D-CNN"
+    type: "cnn1d"
+    params:
+      hidden_channels: [128, 64]
+      kernel_size: 3
+      dropout: 0.3
+      output_dim: 1                    # binary logits
+    # The 1D-CNN treats each flow's feature vector as a 1-channel 1D sequence.
+
+  ft_transformer:
+    name: "FT-Transformer"
+    type: "ft_transformer"
+    params:
+      d_token: 64
+      n_blocks: 2
+      attention_dropout: 0.2
+      ffn_dropout: 0.1
+      ffn_d_hidden: 128
+      output_dim: 1
+    # Tokenizes each feature into an embedding token, applies Transformer blocks.
+    # Implementation uses rtdl if available; falls back to a local minimal version.

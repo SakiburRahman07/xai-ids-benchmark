@@ -1,0 +1,59 @@
+# Metric family configurations for explanation-quality evaluation.
+
+metrics:
+  faithfulness:
+    enabled: true
+    methods:
+      deletion_insertion:
+        steps: 20                      # fraction of features removed/added
+        order: "most_important_first"   # per attribution magnitude
+      infidelity: {}                   # Yeh et al. (perturbation-based)
+      sensitivity_n:                   # Bouchon et al.
+        n_values: [5, 10, 20]
+      sufficiency:
+        top_k: [3, 5, 10]               # prediction preservation under top-k ablation
+      necessity:
+        low_k: [3, 5]                   # flip of low-attribution features should not change prediction
+      descriptive_accuracy: {}
+      sparsity: {}
+
+  stability:
+    enabled: true
+    methods:
+      kendall_tau_bootstrap:
+        n_bootstrap: 100               # B = 100 per preregistration
+        random_state: 20260827
+      perturbation_stability:
+        epsilon: 0.05                   # prediction-preserving perturbation magnitude (relative)
+      fragility_score:                  # Vourganas 2026; computed on UNSW-NB15 primarily
+        vif_threshold: 5.0
+
+  cost:
+    enabled: true
+    methods:
+      latency_per_instance:
+        repeats: 5
+        warmup: 10
+      scaling_curve:
+        sample_sizes: [1000, 5000, 10000, 50000]
+      gpu_memory: true                 # peak memory during explanation
+
+  proxy_utility:
+    enabled: true
+    methods:
+      top_k_attack_family_recall:
+        k_values: [10, 50, 100]
+      time_to_critical_alert: true
+      baselines: ["no_explanation", "random_reorder"]
+      policy: "attribution_magnitude"   # reorder by summed attribution over critical features
+
+# Statistical analysis (Friedman + Nemenyi)
+analysis:
+  primary_test: "friedman"
+  post_hoc: "nemenyi"
+  alpha: 0.05
+  multiple_comparison_correction: "nemenyi"   # for H1; "holm" for H2
+  effect_size: true
+  ci: 0.95
+  h2_one_tailed: true
+  outlier_iqr_factor: 3.0               # flagged, not removed in primary analysis
