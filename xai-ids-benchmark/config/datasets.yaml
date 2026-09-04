@@ -48,7 +48,7 @@ datasets:
       Download UNSW-NB15_1_4 CSVs (UNSW-NB15_1.csv..UNSW-NB15_4.csv) and
       the ground-truth NUSW-NB15_GT.csv from the official UNSW page, place
       them under data_raw/unsw_nb15/. Alternatively use the Kaggle mirror.
-    files_glob: "data_raw/unsw_nb15/UNSW-NB15_*.csv"
+    files_glob: "data_raw/unsw_nb15/**/*.csv"
     target_column: "attack_cat"
     drop_columns:
       - "srcip"
