@@ -44,7 +44,11 @@ code([
     "    shutil.rmtree(REPO_DIR)\n",
     "subprocess.run(['git','clone','--depth','1','-b',BRANCH,GITHUB_REPO,REPO_DIR], check=True)\n",
     "os.chdir(REPO_DIR)\n",
-    "print('CWD:', os.getcwd())\n",
+    "# Auto-detect code location: code may be at repo root OR nested under xai-ids-benchmark/.\n",
+    "if not os.path.exists('scripts/run_benchmark.py') and os.path.exists('xai-ids-benchmark/scripts/run_benchmark.py'):\n",
+    "    os.chdir('xai-ids-benchmark')\n",
+    "CODE_ROOT = os.getcwd()\n",
+    "print('CWD / CODE_ROOT:', CODE_ROOT)\n",
     "subprocess.run(['ls','-la'], check=False)",
 ])
 code([
@@ -125,7 +129,7 @@ code([
 ])
 code([
     "# Critical distance diagram for a chosen metric.\n",
-    "import sys; sys.path.insert(0, 'src')\n",
+    "import sys; sys.path.insert(0, os.path.join(CODE_ROOT, 'src'))\n",
     "from xai_ids_benchmark.analysis.plots import plot_cd\n",
     "metric_to_plot = 'deletion_auc'  # any scalar metric present in friedman_nemenyi.json\n",
     "if metric_to_plot in fn:\n",
