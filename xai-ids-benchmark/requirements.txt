@@ -18,8 +18,8 @@ lime==0.2.0.1
 dice-ml==0.1.4
 captum==0.7.0
 
-# Tabular DL (FT-Transformer)
-rtdl==0.0.1
+# FT-Transformer: local implementation in src/xai_ids_benchmark/models/ft_transformer.py
+# (rtdl PyPI package has conflicting dependencies; not used)
 
 # Analysis / plotting
 matplotlib==3.9.0
