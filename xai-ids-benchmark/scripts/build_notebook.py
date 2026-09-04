@@ -28,7 +28,7 @@ md([
 ])
 md(["## 1. Configuration\n", "\n", "Set your GitHub repo URL and run options."])
 code([
-    "GITHUB_REPO = 'https://github.com/<your-user>/xai-ids-benchmark.git'  # <-- EDIT\n",
+    "GITHUB_REPO = 'https://github.com/SakiburRahman07/xai-ids-benchmark.git'\n",
     "BRANCH = 'main'\n",
     "QUICK = True                      # True = smoke run; False = full factorial\n",
     "DATASETS = None                   # None = all 3; or e.g. ['cicids2017']\n",
@@ -44,7 +44,11 @@ code([
     "    shutil.rmtree(REPO_DIR)\n",
     "subprocess.run(['git','clone','--depth','1','-b',BRANCH,GITHUB_REPO,REPO_DIR], check=True)\n",
     "os.chdir(REPO_DIR)\n",
+    "# Auto-detect code location: code may be at repo root OR nested under xai-ids-benchmark/.\n",
+    "if not os.path.exists('scripts/run_benchmark.py') and os.path.exists('xai-ids-benchmark/scripts/run_benchmark.py'):\n",
+    "    os.chdir('xai-ids-benchmark')\n",
     "print('CWD:', os.getcwd())\n",
+    "assert os.path.exists('scripts/run_benchmark.py'), 'run_benchmark.py not found — check repo layout'\n",
     "subprocess.run(['ls','-la'], check=False)",
 ])
 code([

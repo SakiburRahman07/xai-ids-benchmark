@@ -73,7 +73,7 @@ Outputs land in `results/`:
 
 ## Run in Google Colab
 
-Open `notebooks/run_in_colab.ipynb` in Colab (set runtime to GPU). Edit the `GITHUB_REPO` cell to point at your fork, then run top-to-bottom. The notebook:
+Open `notebooks/run_in_colab.ipynb` in Colab (set runtime to GPU). The `GITHUB_REPO` cell is pre-set to `https://github.com/SakiburRahman07/xai-ids-benchmark.git`; run top-to-bottom. The notebook:
 
 1. Clones your repo,
 2. Installs deps (skips torch to avoid CUDA mismatch),
@@ -116,11 +116,12 @@ git init
 git add .
 git commit -m "Initial: XAI-IDS benchmark (4x2x3 factorial, leakage-controlled)"
 # Create an empty repo on GitHub, then:
-git remote add origin https://github.com/<your-user>/xai-ids-benchmark.git
+git remote add origin https://github.com/SakiburRahman07/xai-ids-benchmark.git
 git branch -M main
 git push -u origin main
 ```
-Then set `GITHUB_REPO` in the Colab notebook.
+
+The Colab notebook (`notebooks/run_in_colab.ipynb`) is pre-configured to clone from `https://github.com/SakiburRahman07/xai-ids-benchmark.git` and auto-detects whether the code is at the repo root or nested under `xai-ids-benchmark/`.
 
 ## Scope & ethics
 
