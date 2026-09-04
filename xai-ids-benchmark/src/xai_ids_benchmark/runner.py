@@ -92,7 +92,7 @@ def build_explainer(name: str, model, train_x, train_y, feat_names, device, cfg)
 
 def run_one_cell(dataset_name: str, ds_cfg: dict, model_name: str, model_cfg: dict,
                  xai_cfgs: dict, metric_cfgs: dict, base: str, quick: bool,
-                 logger) -> dict:
+                 logger, max_eval: int | None = None, n_bootstrap: int | None = None) -> dict:
     seed = ds_cfg["split"]["random_state"]
     set_seed(seed)
     dev = _device()
@@ -154,7 +154,8 @@ def run_one_cell(dataset_name: str, ds_cfg: dict, model_name: str, model_cfg: di
         try:
             expl = build_explainer(method_key, model, Xtr, ytr, feat_names, dev, mcfg)
             # Use a subset for stability/cost to keep runtime bounded.
-            n_eval = min(500 if quick else 2000, len(Xte))
+            n_eval_default = 500 if quick else 2000
+            n_eval = min(max_eval if max_eval else n_eval_default, len(Xte))
             X_eval = Xte[:n_eval]
             y_eval = yte[:n_eval]
             fam_eval = pp["fam_test"][:n_eval]
@@ -173,7 +174,9 @@ def run_one_cell(dataset_name: str, ds_cfg: dict, model_name: str, model_cfg: di
             logger.warning(f"  faithfulness error: {e}")
             faith = {}
         try:
-            stab = Stability(explain_fn, X_eval[:100]).evaluate(attr)
+            n_boot = n_bootstrap if n_bootstrap else (20 if quick else 100)
+            stab_X = X_eval[:min(100, n_eval)]
+            stab = Stability(explain_fn, stab_X, n_bootstrap=n_boot).evaluate(attr)
         except Exception as e:
             logger.warning(f"  stability error: {e}")
             stab = {}
@@ -199,7 +202,8 @@ def run_one_cell(dataset_name: str, ds_cfg: dict, model_name: str, model_cfg: di
 
 def run_benchmark(config_dir: str, base: str = ".", out_dir: str = "results",
                   quick: bool = False, datasets: list[str] | None = None,
-                  models: list[str] | None = None, methods: list[str] | None = None) -> Path:
+                  models: list[str] | None = None, methods: list[str] | None = None,
+                  max_eval: int | None = None, n_bootstrap: int | None = None) -> Path:
     cfgs = load_configs(config_dir)
     logger = get_logger("xai_ids_benchmark", log_dir=out_dir)
     set_seed(20260827)
@@ -218,7 +222,8 @@ def run_benchmark(config_dir: str, base: str = ".", out_dir: str = "results",
         for m in model_keys:
             try:
                 rows = run_one_cell(ds, ds_cfgs[ds], m, model_cfgs[m], xai_cfgs,
-                                    cfgs["metrics"]["metrics"], base, quick, logger)
+                                    cfgs["metrics"]["metrics"], base, quick, logger,
+                                    max_eval=max_eval, n_bootstrap=n_bootstrap)
                 all_rows.extend(rows)
             except Exception as e:
                 logger.error(f"Cell [{ds}|{m}] crashed: {e}")
@@ -310,9 +315,14 @@ def main():
     ap.add_argument("--datasets", nargs="*", default=None)
     ap.add_argument("--models", nargs="*", default=None)
     ap.add_argument("--methods", nargs="*", default=None)
+    ap.add_argument("--max-eval", type=int, default=None,
+                    help="cap on #test instances evaluated per cell (default: 500 quick / 2000 full)")
+    ap.add_argument("--n-bootstrap", type=int, default=None,
+                    help="#bootstrap resamples for stability (default: 20 quick / 100 full)")
     args = ap.parse_args()
     run_benchmark(args.config_dir, args.base, args.out_dir, args.quick,
-                  args.datasets, args.models, args.methods)
+                  args.datasets, args.models, args.methods,
+                  max_eval=args.max_eval, n_bootstrap=args.n_bootstrap)
 
 
 if __name__ == "__main__":

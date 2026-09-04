@@ -82,6 +82,18 @@ Open `notebooks/run_in_colab.ipynb` in Colab (set runtime to GPU). The `GITHUB_R
 5. Renders the Friedman/Nemenyi CD diagram and the H2 Wilcoxon results,
 6. Zips `results/` for download.
 
+## Run in Kaggle
+
+Open `notebooks/run_in_kaggle.ipynb` as a Kaggle Notebook. Before running:
+
+1. **Settings → Internet → On** (needed to clone the repo).
+2. **Settings → Accelerator → GPU** (P100 or T4 x2).
+3. **Add Input datasets** (right panel → Add Input → search): add the three IDS datasets by searching `CIC-IDS-2017`, `UNSW-NB15`, `CIC IoT 2023`. They mount under `/kaggle/input/<slug>/` — the notebook auto-detects and symlinks them into `data_raw/`. No manual download, no form, no Google Drive needed.
+
+Then run top-to-bottom. Results land in `/kaggle/working/results/` and are auto-saved as notebook Output.
+
+**Kaggle 9h session limit:** for the full factorial in one session, set `QUICK=False`, `MAX_EVAL=500`, `N_BOOTSTRAP=30` in the config cell. Or run one dataset at a time: `DATASETS=['cicids2017']` etc.
+
 ## Repository layout
 
 ```
@@ -121,7 +133,7 @@ git branch -M main
 git push -u origin main
 ```
 
-The Colab notebook (`notebooks/run_in_colab.ipynb`) is pre-configured to clone from `https://github.com/SakiburRahman07/xai-ids-benchmark.git` and auto-detects whether the code is at the repo root or nested under `xai-ids-benchmark/`.
+The Colab notebook (`notebooks/run_in_colab.ipynb`) is pre-configured to clone from `https://github.com/SakiburRahman07/xai-ids-benchmark.git`.
 
 ## Scope & ethics
 
