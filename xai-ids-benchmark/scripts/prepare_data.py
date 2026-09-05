@@ -27,8 +27,12 @@ def main():
     ok = True
     for k in keys:
         try:
-            df = load_dataset(k, ds_cfgs[k], base=args.base)
+            # Limit CICIoT2023 to 5 CSV files to avoid OOM on Kaggle.
+            kwargs = {"max_files": 5} if k == "ciciot2023" else {}
+            df = load_dataset(k, ds_cfgs[k], base=args.base, **kwargs)
             print(f"[OK] {k}: {df.shape}")
+            del df  # free memory before loading the next dataset
+            import gc; gc.collect()
         except FileNotFoundError as e:
             print(f"[MISS] {k}:\n{e}\n", file=sys.stderr)
             ok = False

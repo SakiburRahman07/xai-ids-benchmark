@@ -32,7 +32,7 @@ def _normalize_labels(series: pd.Series, how: str = "lower_strip") -> pd.Series:
     return series.astype(str).str.strip()
 
 
-def load_cicids2017(cfg: dict, base: str | os.PathLike = ".") -> pd.DataFrame:
+def load_cicids2017(cfg: dict, base: str | os.PathLike = ".", **kwargs) -> pd.DataFrame:
     files = _find_files(cfg["files_glob"], base)
     if not files:
         raise FileNotFoundError(
@@ -56,7 +56,7 @@ def load_cicids2017(cfg: dict, base: str | os.PathLike = ".") -> pd.DataFrame:
     return df
 
 
-def load_unsw_nb15(cfg: dict, base: str | os.PathLike = ".") -> pd.DataFrame:
+def load_unsw_nb15(cfg: dict, base: str | os.PathLike = ".", **kwargs) -> pd.DataFrame:
     files = _find_files(cfg["files_glob"], base)
     if not files:
         raise FileNotFoundError(
@@ -74,12 +74,16 @@ def load_unsw_nb15(cfg: dict, base: str | os.PathLike = ".") -> pd.DataFrame:
     return df
 
 
-def load_ciciot2023(cfg: dict, base: str | os.PathLike = ".") -> pd.DataFrame:
+def load_ciciot2023(cfg: dict, base: str | os.PathLike = ".", max_files: int = 10) -> pd.DataFrame:
     files = _find_files(cfg["files_glob"], base)
     if not files:
         raise FileNotFoundError(
             f"No CICIoT2023 CSVs found under {cfg['files_glob']}.\n{cfg.get('manual_instructions','')}"
         )
+    # CICIoT2023 has 169 small CSVs (~20M rows total, ~3GB). Loading all at once
+    # causes OOM on Kaggle (13GB RAM). Load only a subset — enough for the benchmark.
+    if len(files) > max_files:
+        files = sorted(files)[:max_files]
     dfs = [pd.read_csv(f, low_memory=False) for f in files]
     df = pd.concat(dfs, ignore_index=True)
     df.columns = [c.strip().lower() for c in df.columns]
@@ -98,11 +102,11 @@ _LOADERS = {
 }
 
 
-def load_dataset(name: str, cfg: dict, base: str | os.PathLike = ".") -> pd.DataFrame:
+def load_dataset(name: str, cfg: dict, base: str | os.PathLike = ".", **kwargs) -> pd.DataFrame:
     """Dispatch to the right loader by dataset key."""
     if name not in _LOADERS:
         raise KeyError(f"Unknown dataset '{name}'. Known: {list(_LOADERS)}")
-    return _LOADERS[name](cfg, base)
+    return _LOADERS[name](cfg, base, **kwargs)
 
 
 def family_label(row_label: str, families: dict) -> str:

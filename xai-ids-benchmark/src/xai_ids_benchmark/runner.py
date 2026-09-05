@@ -98,7 +98,11 @@ def run_one_cell(dataset_name: str, ds_cfg: dict, model_name: str, model_cfg: di
     dev = _device()
     logger.info(f"[{dataset_name} | {model_name}] loading data...")
     try:
-        df = load_dataset(dataset_name, ds_cfg, base=base)
+        # In quick mode, limit CICIoT2023 to a few CSV files to avoid OOM.
+        load_kwargs = {}
+        if quick and dataset_name == "ciciot2023":
+            load_kwargs["max_files"] = 5
+        df = load_dataset(dataset_name, ds_cfg, base=base, **load_kwargs)
     except FileNotFoundError as e:
         logger.error(f"Dataset {dataset_name} not available: {e}")
         return [{"dataset": dataset_name, "model": model_name, "error": str(e)}]
